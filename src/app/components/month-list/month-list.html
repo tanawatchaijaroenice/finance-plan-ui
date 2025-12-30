@@ -1,0 +1,101 @@
+<div class="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+    <!-- Header -->
+    <div class="flex flex-col gap-4">
+        <a routerLink="/"
+            class="group inline-flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors w-fit">
+            <svg class="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            Back to Dashboard
+        </a>
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-display font-bold text-slate-800 dark:text-slate-100 tracking-tight">History
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Archive of all your monthly financial plans</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table Card -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead
+                    class="bg-slate-50/80 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 backdrop-blur-sm">
+                    <tr>
+                        <th class="p-5 font-semibold text-slate-600 dark:text-slate-300 text-sm tracking-wide">Month
+                        </th>
+                        <th class="p-5 font-semibold text-slate-600 dark:text-slate-300 text-sm tracking-wide">Created
+                            At</th>
+                        <th
+                            class="p-5 font-semibold text-slate-600 dark:text-slate-300 text-sm tracking-wide text-right">
+                            Total Income</th>
+                        <th
+                            class="p-5 font-semibold text-slate-600 dark:text-slate-300 text-sm tracking-wide text-right">
+                            Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+                    @for (month of months; track month.id) {
+                    <tr class="group hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors duration-200">
+                        <td class="p-5">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 flex items-center justify-center font-display font-bold shadow-sm">
+                                    {{ month.name.substring(0, 1) }}
+                                </div>
+                                <span
+                                    class="font-display font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{
+                                    month.name }}</span>
+                            </div>
+                        </td>
+                        <td class="p-5 text-slate-500 dark:text-slate-400 font-medium text-sm">{{ month.createdAt |
+                            date:'mediumDate' }}
+                        </td>
+                        <td class="p-5 text-right">
+                            <span
+                                class="font-display font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg border border-emerald-100/50 dark:border-emerald-800/30">
+                                {{ month.totalIncome | currency:'THB':'symbol-narrow' }}
+                            </span>
+                        </td>
+                        <td class="p-5 text-right">
+                            <a [routerLink]="['/month', month.id]"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm transition-all">
+                                View Details
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="4" class="p-16 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
+                                <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-lg font-medium text-slate-500 dark:text-slate-400 mb-2">No history found
+                                </p>
+                                <p class="text-sm dark:text-slate-500">Create your first monthly plan to see it here.
+                                </p>
+                                <a routerLink="/"
+                                    class="mt-6 px-6 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors shadow-lg shadow-primary-600/20">
+                                    Go to Dashboard
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

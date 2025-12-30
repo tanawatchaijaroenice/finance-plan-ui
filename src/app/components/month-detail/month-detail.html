@@ -1,0 +1,362 @@
+<div class="max-w-7xl mx-auto space-y-8" *ngIf="month">
+    <!-- Header (Sticky) -->
+    <div
+        class="sticky top-16 z-40 flex flex-col gap-4 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md py-4 -mx-4 px-4 shadow-sm transition-all rounded-b-2xl">
+        <a routerLink="/"
+            class="group inline-flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors w-fit">
+            <svg class="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            Back to Dashboard
+        </a>
+
+        <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100/50 dark:border-slate-700">
+            <div>
+                <h1 class="text-3xl font-display font-bold text-slate-800 dark:text-slate-100 tracking-tight">{{
+                    month.name }}</h1>
+                <p class="text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Created on <span class="font-medium">{{ month.createdAt | date:'mediumDate' }}</span>
+                </p>
+            </div>
+            <div
+                class="text-right bg-slate-50 dark:bg-slate-700/50 px-6 py-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                    Remaining Balance</p>
+                <p class="text-3xl font-display font-bold" [class.text-emerald-600]="getRemaining() >= 0"
+                    [class.dark:text-emerald-400]="getRemaining() >= 0" [class.text-rose-500]="getRemaining() < 0"
+                    [class.dark:text-rose-400]="getRemaining() < 0">
+                    {{ getRemaining() | currency:'THB':'symbol-narrow' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
+        <div
+            class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:shadow-md transition-all duration-300">
+            <div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Income</p>
+
+                <div *ngIf="!editingIncome" class="flex items-center gap-2">
+                    <p class="text-2xl font-display font-bold text-emerald-600 dark:text-emerald-400">{{
+                        month.totalIncome |
+                        currency:'THB':'symbol-narrow' }}</p>
+                    <button (click)="startEditIncome()"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 dark:text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div *ngIf="editingIncome" class="flex items-center gap-2">
+                    <input type="number" [(ngModel)]="tempIncome"
+                        class="w-32 px-2 py-1 text-xl font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-700 border border-emerald-200 dark:border-emerald-800 rounded focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        (keyup.enter)="saveIncome()" (keyup.escape)="cancelEditIncome()">
+                    <button (click)="saveIncome()"
+                        class="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 p-1 rounded">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </button>
+                    <button (click)="cancelEditIncome()"
+                        class="text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 p-1 rounded">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div
+                class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </div>
+        </div>
+        <div
+            class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:shadow-md transition-all duration-300">
+            <div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Expenses</p>
+                <p class="text-2xl font-display font-bold text-rose-500 dark:text-rose-400">{{ getTotalExpenses() |
+                    currency:'THB':'symbol-narrow' }}</p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-500 dark:text-rose-400 group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses Grouped by Category -->
+    <div class="animate-fade-in-up grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div *ngFor="let group of groupedExpenses"
+            class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <!-- Group Header -->
+            <div class="px-6 py-4 flex justify-between items-center border-b dark:border-slate-700"
+                [ngClass]="getCategoryColor(group.category?.id).bg + ' ' + getCategoryColor(group.category?.id).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center shadow-sm"
+                        [ngClass]="getCategoryColor(group.category?.id).text">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-lg"
+                            [ngClass]="getCategoryColor(group.category?.id).text">
+                            {{ group.category?.name || 'Uncategorized' }}
+                        </h3>
+                        <p
+                            class="text-xs text-slate-500 dark:text-slate-400 font-medium opacity-80 uppercase tracking-wider">
+                            Category</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-sm font-bold" [ngClass]="getCategoryColor(group.category?.id).text">
+                            {{ group.total | currency:'THB':'symbol-narrow' }}
+                        </p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
+                    </div>
+                    <button (click)="startAddDetail(group.category)"
+                        class="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm hover:scale-105 transition-transform"
+                        [ngClass]="getCategoryColor(group.category?.id).text">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <tbody *ngIf="group.expenses.length > 0; else noExpenses"
+                        class="divide-y divide-slate-50 dark:divide-slate-700">
+                        <tr *ngFor="let expense of group.expenses"
+                            class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/row">
+
+                            <!-- Display Mode -->
+                            <ng-container *ngIf="editingId !== expense.id">
+                                <td class="p-4 pl-6 text-slate-600 dark:text-slate-300 font-medium w-1/2">
+                                    <div class="flex items-center gap-2">
+                                        <span *ngIf="expense.account"
+                                            class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                            {{ expense.account.name }}
+                                            <span
+                                                *ngIf="expense.account.type === 'CREDIT_CARD' && expense.account.dueDate"
+                                                class="ml-1 text-[10px] text-slate-400 dark:text-slate-500">
+                                                Due: {{ expense.account.dueDate }}
+                                            </span>
+                                        </span>
+                                        <!-- Status Checkbox -->
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <div class="relative flex items-center">
+                                                <input type="checkbox" [checked]="expense.status === 'PAID'"
+                                                    (change)="toggleStatus(expense)"
+                                                    class="peer h-4 w-4 cursor-pointer appearance-none rounded border border-slate-300 shadow-sm transition-all checked:border-emerald-500 checked:bg-emerald-500 hover:shadow-md dark:border-slate-600 dark:checked:border-emerald-500 dark:checked:bg-emerald-500" />
+                                                <span
+                                                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 text-white pointer-events-none">
+                                                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="4" stroke-linecap="round"
+                                                        stroke-linejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                        </label>
+                                        <span [class.line-through]="expense.status === 'PAID'"
+                                            [class.text-slate-400]="expense.status === 'PAID'"
+                                            class="transition-all duration-200">
+                                            {{ expense.note || '-' }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-right font-semibold text-slate-800 dark:text-slate-200"
+                                    [class.line-through]="expense.status === 'PAID'"
+                                    [class.text-slate-400]="expense.status === 'PAID' && expense.category?.type !== 'INCOME'"
+                                    [class.dark:text-slate-500]="expense.status === 'PAID'"
+                                    [class.text-blue-600]="expense.category?.type === 'INCOME'"
+                                    [class.dark:text-blue-400]="expense.category?.type === 'INCOME'">
+
+                                    <span *ngIf="expense.category?.type === 'INCOME'"
+                                        class="text-[10px] mr-1 text-slate-400 font-normal uppercase tracking-wider">Charge</span>
+                                    {{ expense.amount | currency:'THB':'symbol-narrow' }}
+                                </td>
+                                <td class="p-4 text-right pr-6">
+                                    <div
+                                        class="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                        <button (click)="startEdit(expense)"
+                                            class="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                            title="Edit">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                        <button (click)="deleteExpense(expense.id)"
+                                            class="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                            title="Delete">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <!-- Edit Mode -->
+                            <ng-container *ngIf="editingId === expense.id">
+                                <td class="p-4 pl-6 w-1/2">
+                                    <div class="flex gap-2">
+                                        <!-- Custom Dropdown (Edit) -->
+                                        <div class="w-1/3" *ngIf="isCreditCardCategory(expense.categoryId || null)">
+                                            <select [(ngModel)]="editingExpense.accountId"
+                                                class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm appearance-none">
+                                                <option [ngValue]="null">Default</option>
+                                                <option
+                                                    *ngFor="let acc of getAvailableAccounts(expense.categoryId || null)"
+                                                    [ngValue]="acc.id">
+                                                    {{ acc.name }} <span
+                                                        *ngIf="acc.type === 'CREDIT_CARD' && acc.dueDate">(Due: {{
+                                                        acc.dueDate }})</span>
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <input type="text" [(ngModel)]="editingExpense.note"
+                                            class="flex-1 px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                            placeholder="Note">
+                                        <!-- Status Select in Edit Mode -->
+                                        <select [(ngModel)]="editingExpense.status"
+                                            class="px-2 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm">
+                                            <option value="UNPAID">UNPAID</option>
+                                            <option value="PAID">PAID</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <input type="number" [(ngModel)]="editingExpense.amount"
+                                        class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-right dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                        placeholder="Amount">
+                                </td>
+                                <td class="p-4 text-right pr-6">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button (click)="saveEdit()"
+                                            class="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                            title="Save">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                        <button (click)="cancelEdit()"
+                                            class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                            title="Cancel">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </ng-container>
+                        </tr>
+                    </tbody>
+
+                    <!-- Inline Add Row (Only visible for active category) -->
+                    <tfoot *ngIf="addingCategoryId === (group.category?.id || 'uncategorized')"
+                        class="bg-primary-50/50 dark:bg-primary-900/10 border-t border-primary-100/50 dark:border-primary-900/30">
+                        <tr class="animate-fade-in">
+                            <td class="p-4 pl-6">
+                                <div class="flex gap-2">
+                                    @if(addingCategoryId == 7){
+                                    <!-- Custom Dropdown (Add) -->
+                                    <div class="w-1/3">
+                                        <select [(ngModel)]="newDetail.accountId"
+                                            class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-primary-200 dark:border-primary-700 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm placeholder:text-slate-400 appearance-none">
+                                            <option [ngValue]="null">Default</option>
+                                            <option
+                                                *ngFor="let acc of getAvailableAccounts(group.category?.id || 'uncategorized')"
+                                                [ngValue]="acc.id">
+                                                {{ acc.name }} <span
+                                                    *ngIf="acc.type === 'CREDIT_CARD' && acc.dueDate">(Due: {{
+                                                    acc.dueDate }})</span>
+                                            </option>
+                                        </select>
+                                    </div>
+                                    }
+                                    <input type="text" [(ngModel)]="newDetail.note"
+                                        [ngClass]="{ 'w-full': addingCategoryId !== 7, 'w-2/3': addingCategoryId === 7 }"
+                                        class="px-3 py-2 bg-white dark:bg-slate-800 border border-primary-200 dark:border-primary-700 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                                        placeholder="New Detail Name (e.g. Water Bill)">
+
+                                    <select [(ngModel)]="newDetail.status"
+                                        class="px-2 py-2 bg-white dark:bg-slate-800 border border-primary-200 dark:border-primary-700 rounded-lg text-sm dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm">
+                                        <option value="UNPAID">UNPAID</option>
+                                        <option value="PAID">PAID</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <input type="number" [(ngModel)]="newDetail.amount"
+                                    class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-primary-200 dark:border-primary-700 rounded-lg text-sm text-right dark:text-slate-200 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                                    placeholder="Amount">
+                            </td>
+                            <td class="p-4 text-right pr-6">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button (click)="saveNewDetail()"
+                                        class="px-4 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-primary-600/20 hover:bg-primary-700 transition-all">
+                                        Add
+                                    </button>
+                                    <button (click)="cancelAddDetail()"
+                                        class="px-3 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+
+                    <ng-template #noExpenses>
+                        <tbody *ngIf="addingCategoryId !== (group.category?.id || 'uncategorized')">
+                            <tr>
+                                <td colspan="3" class="p-12 text-center">
+                                    <div class="flex flex-col items-center justify-center text-slate-400">
+                                        <svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                            </path>
+                                        </svg>
+                                        <p class="text-sm font-medium">No expenses yet</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </ng-template>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
