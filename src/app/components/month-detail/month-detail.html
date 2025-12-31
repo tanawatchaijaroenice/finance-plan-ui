@@ -159,7 +159,8 @@
                                 <td class="p-4 pl-6 text-slate-600 dark:text-slate-300 font-medium w-1/2">
                                     <div class="flex items-center gap-2">
                                         <span *ngIf="expense.account"
-                                            class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                            class="text-xs font-bold px-2 py-0.5 rounded border"
+                                            [ngClass]="getAccountStyle(expense.account)">
                                             {{ expense.account.name }}
                                             <span
                                                 *ngIf="expense.account.type === 'CREDIT_CARD' && expense.account.dueDate"

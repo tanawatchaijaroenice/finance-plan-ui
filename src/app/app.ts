@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common'; // Import CommonModule
-import { Component, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, signal, inject } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,8 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './app.css'
 })
 export class App {
+  authService = inject(AuthService);
+  router = inject(Router);
   protected readonly title = signal('frontend');
   darkMode = signal<boolean>(false);
 
@@ -33,5 +36,9 @@ export class App {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }

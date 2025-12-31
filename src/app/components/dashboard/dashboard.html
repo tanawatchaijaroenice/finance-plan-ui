@@ -180,7 +180,8 @@
                   </span>
 
                   <span *ngIf="ex.account"
-                    class="rounded text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-600 flex items-center whitespace-nowrap">
+                    class="rounded text-[10px] font-bold px-1.5 py-0.5 flex items-center whitespace-nowrap"
+                    [ngClass]="getAccountStyle(ex.account)">
                     {{ ex.account.name }}
                     <span *ngIf="ex.account.type === 'CREDIT_CARD'"
                       class="ml-1 text-[9px] uppercase tracking-wider text-slate-400">CREDIT</span>
