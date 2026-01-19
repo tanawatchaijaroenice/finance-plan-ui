@@ -351,5 +351,260 @@ export class MonthDetailComponent implements OnInit {
     }
   }
 
+  // Food Stats Feature
+  showFoodStatsModal = false;
+  foodStats: { weeks: { range: string, days: number, budget: number, balanceEnd: number, isCurrent: boolean, isPast: boolean, startDay: number, endDay: number }[], totalBudget: number, dailyBudget: number, progressPercentage: number } | null = null;
+  foodStatsStartDay: number | null = null; // null = Default (Month view)
+  foodStatsStartMonthOffset: number = 0; // 0 = Current, -1 = Previous
+  availableStartDays: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
+  private readonly FOOD_SETTINGS_KEY = 'finance_plan_food_settings';
 
+  openFoodStats() {
+    // Find Food Group
+    const foodGroup = this.groupedExpenses.find(g => g.category?.name.toLowerCase() === 'food');
+
+    if (!this.month || !foodGroup) {
+      Swal.fire('Error', 'Food category not found or has no expenses', 'error');
+      return;
+    }
+
+    const budget = foodGroup.total;
+
+    if (budget <= 0) {
+      Swal.fire({
+        title: 'No Expenses',
+        text: 'The Monthly Budget is calculated from the sum of all Food expenses. Please add expenses to see the breakdown.',
+        icon: 'info'
+      });
+      return;
+    }
+
+    this.loadFoodStatsSettings();
+    this.processFoodStats(budget);
+    this.showFoodStatsModal = true;
+  }
+
+  closeFoodStats() {
+    this.showFoodStatsModal = false;
+  }
+
+  onFoodStatsStartDayChange() {
+    this.saveFoodStatsSettings();
+    const foodGroup = this.groupedExpenses.find(g => g.category?.name.toLowerCase() === 'food');
+    if (foodGroup) {
+      this.processFoodStats(foodGroup.total);
+    }
+  }
+
+  private saveFoodStatsSettings() {
+    const settings = {
+      startDay: this.foodStatsStartDay,
+      monthOffset: this.foodStatsStartMonthOffset
+    };
+    localStorage.setItem(this.FOOD_SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  private loadFoodStatsSettings() {
+    const saved = localStorage.getItem(this.FOOD_SETTINGS_KEY);
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        this.foodStatsStartDay = settings.startDay;
+        this.foodStatsStartMonthOffset = settings.monthOffset || 0;
+      } catch (e) {
+        console.error('Failed to parse food stats settings', e);
+      }
+    }
+  }
+
+  processFoodStats(totalBudget: number) {
+    if (!this.month) return;
+
+    const date = new Date(this.month.name);
+    if (isNaN(date.getTime())) return;
+
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+
+    // Determine Timeline Range
+    let startDate: Date;
+    let endDate: Date;
+    let totalDays: number;
+
+    if (this.foodStatsStartDay) {
+      // Custom: Start Day -> +30 Days WITH Month Offset
+      startDate = new Date(year, monthIndex + this.foodStatsStartMonthOffset, this.foodStatsStartDay);
+
+      // Handle edge case: e.g., Feb 30 -> Mar 2. 
+      // JS Date auto-handles overflow. If user intended "Last day of Feb" but clicked 30, they get start of Mar.
+      // This is generally acceptable for a "cycle". 
+
+      const duration = 30;
+      totalDays = duration;
+
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + duration - 1); // Inclusive
+    } else {
+      // Default: Full Month
+      startDate = new Date(year, monthIndex, 1);
+      endDate = new Date(year, monthIndex + 1, 0);
+      totalDays = endDate.getDate();
+    }
+
+    const dailyBudget = totalBudget / totalDays;
+    const weeks: { range: string, days: number, budget: number, balanceEnd: number, isCurrent: boolean, isPast: boolean, startDay: number, endDay: number }[] = [];
+
+    let currentWeekDays = 0;
+    let accumulatedBudget = 0;
+
+    const today = new Date();
+    // Reset time for strict day comparison
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Iterate day by day from startDate to endDate
+    const itr = new Date(startDate);
+
+    // We need to loop exactly 'totalDays' times
+    for (let i = 0; i < totalDays; i++) {
+      // Current iteration date
+      const currentItrDate = new Date(startDate);
+      currentItrDate.setDate(startDate.getDate() + i);
+
+      const dayOfWeek = currentItrDate.getDay(); // 0 (Sun)
+
+      currentWeekDays++;
+
+      // Break on Sunday (0) OR Last Day of Range
+      const isLastDayOfRange = i === totalDays - 1;
+      const isWeekEnd = dayOfWeek === 0;
+
+      if (isWeekEnd || isLastDayOfRange) {
+        // End of this visual block
+        // Start date of this block:
+        const blockEndDate = new Date(currentItrDate);
+        const blockStartDate = new Date(currentItrDate);
+        blockStartDate.setDate(blockEndDate.getDate() - currentWeekDays + 1);
+
+        const rangeStr = `${blockStartDate.getDate()} ${blockStartDate.toLocaleString('default', { month: 'short' })} - ${blockEndDate.getDate()} ${blockEndDate.toLocaleString('default', { month: 'short' })}`;
+
+        // Check if Today is in this range
+        // currentItrDate is End, blockStartDate is Start
+        // We compare timestamps
+        const blkStartTs = new Date(blockStartDate.getFullYear(), blockStartDate.getMonth(), blockStartDate.getDate()).getTime();
+        const blkEndTs = new Date(blockEndDate.getFullYear(), blockEndDate.getMonth(), blockEndDate.getDate()).getTime();
+        const todayTs = todayStart.getTime();
+
+        const isCurrent = (todayTs >= blkStartTs && todayTs <= blkEndTs);
+        const isPast = (blkEndTs < todayTs);
+
+        const weekBudget = dailyBudget * currentWeekDays;
+        accumulatedBudget += weekBudget;
+
+        weeks.push({
+          range: rangeStr,
+          days: currentWeekDays,
+          budget: weekBudget,
+          balanceEnd: totalBudget - accumulatedBudget,
+          isCurrent,
+          isPast,
+          startDay: blockStartDate.getDate(), // Note: simple date might not be enough if crossing months, but for visual list index calc it's separate
+          endDay: blockEndDate.getDate()
+        });
+
+        currentWeekDays = 0;
+      }
+    }
+
+    // Calculate Visual Progress Percentage
+    let progressPercentage = 0;
+
+    // Check if Today is BEFORE the entire range
+    const startRangeTs = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+    const endRangeTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+    const todayTs = todayStart.getTime();
+
+    if (todayTs < startRangeTs) {
+      progressPercentage = 0;
+    } else if (todayTs > endRangeTs) {
+      progressPercentage = 100;
+    } else {
+      // Today is INSIDE the range
+      // Find which visual week block we are in
+      const totalWeeks = weeks.length;
+      const currentWeekIndex = weeks.findIndex(w => w.isCurrent);
+
+      if (currentWeekIndex !== -1) {
+        const currentWeek = weeks[currentWeekIndex];
+
+        // Need to calculate how many days into this specific week block we are.
+        // Since weeks can span months, we can't just subtract dates simply if we only stored 'date'.
+        // Let's re-calculate block start date object from the iteration logic or just diff timestamps.
+        // Easier: Diff Today vs Week's End Date (which we know is 'currentWeek.endDay'.. wait we stored simple int).
+        // Let's improve the stored data in weeks to help accuracy? 
+        // Actually, we can just assume the "days" count is correct.
+        // If currentWeek has 5 days, and today matches.
+        // We need to know if today is Day 1, 2, 3, 4, or 5 of that block.
+        // We know the block ends on 'currentWeek.isCurrent = true'.
+        // We don't easily know the block start date object again without reconstructing.
+        // FIX: Let's simpler - 
+        // We are 'daysIntoRange' total.
+        // Total Visual Height = totalWeeks. visualIndex = currentWeekIndex + (daysIntoWeek / weekLength).
+
+        // How to get daysIntoWeek?
+        // We can iterate again or just store full Date objects in 'weeks'. 
+        // Or simpler: We know today is in this range.
+        // Let's calculate 'daysSinceStartOfRange' for today.
+        const daysSinceStart = Math.floor((todayTs - startRangeTs) / (1000 * 60 * 60 * 24)); // 0-based index from start
+        // No that's global progress. We want visual block progress.
+
+        // Let's stick to the visual index idea from before:
+        // logic: we need (days passed in THIS week / total days in THIS week)
+        // We can get the block's end date? We checked `blkEndTs`.
+        // Let's store `blockEndTime` in the week object for easier diff?
+        // No, TS interface change needed.
+
+        // Workaround: Re-construct start date of the week.
+        // We found currentWeekIndex.
+        // We can use the fact that `currentWeek` was pushed when `isCurrent` was true.
+        // But we don't have the exact date obj there.
+
+        // Let's just USE GLOBAL PROGRESS for simplicity? 
+        // The user specifically praised the visual alignment.
+        // Global (Linear) Progress vs Visual (Block) Progress.
+        // If all blocks were 7 days, they would be same. But blocks vary (1-7 days).
+        // Linear progress: 50% of time might be 30% of visual height if detailed weeks are at end.
+        // We MUST use visual progress.
+
+        // Let's upgrade 'weeks' to hold real date objects for start/end to be safe?
+        // Or just store timestamps.
+
+        // Re-calc:
+        // We need: (Today - BlockStart) / (BlockEnd - BlockStart + 1)
+        // But we don't have BlockStart easily.
+        // Wait, we generate weeks sequentially.
+        // We can sum up 'days' of previous weeks to know the Start Day Index of current week?
+        const daysInPreviousWeeks = weeks.slice(0, currentWeekIndex).reduce((sum, w) => sum + w.days, 0);
+
+        // So current week starts at `startDate + daysInPreviousWeeks`.
+        // Today is at `startDate + daysInTotal`?
+        const daysSinceRangeStart = Math.floor((todayTs - startRangeTs) / (1000 * 60 * 60 * 24));
+
+        // Days into THIS week = daysSinceRangeStart - daysInPreviousWeeks
+        const daysIntoWeek = daysSinceRangeStart - daysInPreviousWeeks; // 0-based. 0 = 1st day.
+
+        // Progress = (daysIntoWeek + 1) / currentWeek.days
+        const weekProgress = (daysIntoWeek + 1) / currentWeek.days;
+
+        const visualIndex = currentWeekIndex + weekProgress;
+        progressPercentage = (visualIndex / totalWeeks) * 100;
+      }
+    }
+
+    this.foodStats = {
+      weeks,
+      totalBudget,
+      dailyBudget,
+      progressPercentage
+    };
+  }
 }

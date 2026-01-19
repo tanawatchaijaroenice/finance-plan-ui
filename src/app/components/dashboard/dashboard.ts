@@ -298,4 +298,180 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  // Food Stats Feature
+  showFoodStatsModal = false;
+  foodStats: { weeks: { range: string, days: number, budget: number, balanceEnd: number, isCurrent: boolean, isPast: boolean, startDay: number, endDay: number }[], totalBudget: number, dailyBudget: number, progressPercentage: number } | null = null;
+  foodStatsStartDay: number | null = null;
+  foodStatsStartMonthOffset: number = 0; // 0 = Current, -1 = Previous
+  availableStartDays: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
+  private readonly FOOD_SETTINGS_KEY = 'finance_plan_food_settings';
+
+  openFoodStats(category: Category | null) {
+    if (!category || category.name.toLowerCase() !== 'food') return;
+
+    // Use groupedExpenses to find the total
+    const foodGroup = this.groupedExpenses.find(g => g.category?.id === category.id);
+    const budget = foodGroup ? foodGroup.total : 0;
+
+    if (budget <= 0) {
+      Swal.fire({
+        title: 'No Expenses',
+        text: 'The Monthly Budget is calculated from the sum of all Food expenses. Please add expenses to see the breakdown.',
+        icon: 'info'
+      });
+      return;
+    }
+
+    this.loadFoodStatsSettings();
+    this.processFoodStats(budget);
+    this.showFoodStatsModal = true;
+  }
+
+  closeFoodStats() {
+    this.showFoodStatsModal = false;
+  }
+
+  onFoodStatsStartDayChange() {
+    this.saveFoodStatsSettings();
+    const foodGroup = this.groupedExpenses.find(g => g.category?.name.toLowerCase() === 'food');
+    if (foodGroup) {
+      this.processFoodStats(foodGroup.total);
+    }
+  }
+
+  private saveFoodStatsSettings() {
+    const settings = {
+      startDay: this.foodStatsStartDay,
+      monthOffset: this.foodStatsStartMonthOffset
+    };
+    localStorage.setItem(this.FOOD_SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  private loadFoodStatsSettings() {
+    const saved = localStorage.getItem(this.FOOD_SETTINGS_KEY);
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        this.foodStatsStartDay = settings.startDay;
+        this.foodStatsStartMonthOffset = settings.monthOffset || 0;
+      } catch (e) {
+        console.error('Failed to parse food stats settings', e);
+      }
+    }
+  }
+
+  processFoodStats(totalBudget: number) {
+    if (!this.currentMonth) return;
+
+    const date = new Date(this.currentMonth.name);
+    if (isNaN(date.getTime())) return;
+
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+
+    // Determine Timeline Range
+    let startDate: Date;
+    let endDate: Date;
+    let totalDays: number;
+
+    if (this.foodStatsStartDay) {
+      startDate = new Date(year, monthIndex + this.foodStatsStartMonthOffset, this.foodStatsStartDay);
+      const duration = 30;
+      totalDays = duration;
+      startDate = new Date(year, monthIndex + this.foodStatsStartMonthOffset, this.foodStatsStartDay);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + duration - 1);
+    } else {
+      startDate = new Date(year, monthIndex, 1);
+      endDate = new Date(year, monthIndex + 1, 0);
+      totalDays = endDate.getDate();
+    }
+
+    const dailyBudget = totalBudget / totalDays;
+    const weeks: { range: string, days: number, budget: number, balanceEnd: number, isCurrent: boolean, isPast: boolean, startDay: number, endDay: number }[] = [];
+
+    let currentWeekDays = 0;
+    let accumulatedBudget = 0;
+
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Iterate day by day from startDate to endDate
+    for (let i = 0; i < totalDays; i++) {
+      const currentItrDate = new Date(startDate);
+      currentItrDate.setDate(startDate.getDate() + i);
+
+      const dayOfWeek = currentItrDate.getDay();
+      currentWeekDays++;
+
+      const isLastDayOfRange = i === totalDays - 1;
+      const isWeekEnd = dayOfWeek === 0;
+
+      if (isWeekEnd || isLastDayOfRange) {
+        const blockEndDate = new Date(currentItrDate);
+        const blockStartDate = new Date(currentItrDate);
+        blockStartDate.setDate(blockEndDate.getDate() - currentWeekDays + 1);
+
+        const rangeStr = `${blockStartDate.getDate()} ${blockStartDate.toLocaleString('default', { month: 'short' })} - ${blockEndDate.getDate()} ${blockEndDate.toLocaleString('default', { month: 'short' })}`;
+
+        const blkStartTs = new Date(blockStartDate.getFullYear(), blockStartDate.getMonth(), blockStartDate.getDate()).getTime();
+        const blkEndTs = new Date(blockEndDate.getFullYear(), blockEndDate.getMonth(), blockEndDate.getDate()).getTime();
+        const todayTs = todayStart.getTime();
+
+        const isCurrent = (todayTs >= blkStartTs && todayTs <= blkEndTs);
+        const isPast = (blkEndTs < todayTs);
+
+        const weekBudget = dailyBudget * currentWeekDays;
+        accumulatedBudget += weekBudget;
+
+        weeks.push({
+          range: rangeStr,
+          days: currentWeekDays,
+          budget: weekBudget,
+          balanceEnd: totalBudget - accumulatedBudget,
+          isCurrent,
+          isPast,
+          startDay: blockStartDate.getDate(),
+          endDay: blockEndDate.getDate()
+        });
+
+        currentWeekDays = 0;
+      }
+    }
+
+    // Calculate Visual Progress
+    let progressPercentage = 0;
+
+    const startRangeTs = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+    const endRangeTs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+    const todayTs = todayStart.getTime();
+
+    if (todayTs < startRangeTs) {
+      progressPercentage = 0;
+    } else if (todayTs > endRangeTs) {
+      progressPercentage = 100;
+    } else {
+      const totalWeeks = weeks.length;
+      const currentWeekIndex = weeks.findIndex(w => w.isCurrent);
+
+      if (currentWeekIndex !== -1) {
+        const currentWeek = weeks[currentWeekIndex];
+        const daysInPreviousWeeks = weeks.slice(0, currentWeekIndex).reduce((sum, w) => sum + w.days, 0);
+
+        const daysSinceRangeStart = Math.floor((todayTs - startRangeTs) / (1000 * 60 * 60 * 24));
+        const daysIntoWeek = daysSinceRangeStart - daysInPreviousWeeks;
+
+        const weekProgress = (daysIntoWeek + 1) / currentWeek.days;
+        const visualIndex = currentWeekIndex + weekProgress;
+        progressPercentage = (visualIndex / totalWeeks) * 100;
+      }
+    }
+
+    this.foodStats = {
+      weeks,
+      totalBudget,
+      dailyBudget,
+      progressPercentage
+    };
+  }
 }

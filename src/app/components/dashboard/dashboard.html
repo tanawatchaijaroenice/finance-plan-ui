@@ -140,11 +140,24 @@
       <!-- Header -->
       <div class="px-5 py-3 border-b dark:border-slate-700 flex justify-between items-center"
         [ngClass]="getCategoryColor(group.category?.id).bg + ' ' + getCategoryColor(group.category?.id).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
-        <h3 class="font-bold truncate" [title]="group.category?.name"
-          [ngClass]="getCategoryColor(group.category?.id).text">
-          {{ group.category?.name || 'Uncategorized' }}
-        </h3>
-        <span class="font-bold bg-white dark:bg-slate-700 px-2 py-1 rounded text-sm border shadow-sm"
+        <div class="flex items-center gap-2 overflow-hidden">
+
+          <button *ngIf="group.category?.name?.toLowerCase() === 'food'" (click)="openFoodStats(group.category)"
+            class="p-1 -ml-1 text-primary-600 dark:text-primary-400 hover:bg-white/50 dark:hover:bg-primary-900/20 rounded-lg transition-colors flex-shrink-0"
+            title="View Weekly Plan">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+              </path>
+            </svg>
+          </button>
+
+          <h3 class="font-bold truncate" [title]="group.category?.name"
+            [ngClass]="getCategoryColor(group.category?.id).text">
+            {{ group.category?.name || 'Uncategorized' }}
+          </h3>
+        </div>
+        <span class="font-bold bg-white dark:bg-slate-700 px-2 py-1 rounded text-sm border shadow-sm flex-shrink-0"
           [ngClass]="getCategoryColor(group.category?.id).text + ' ' + getCategoryColor(group.category?.id).border + ' dark:border-slate-600'">
           {{ group.total | currency:'THB':'symbol-narrow' }}
         </span>
@@ -308,6 +321,131 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Food Stats Modal -->
+<div *ngIf="showFoodStatsModal"
+  class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
+  style="z-index: 10000;">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-scale-up border border-slate-100 dark:border-slate-700">
+    <!-- Header -->
+    <div
+      class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-start bg-slate-50 dark:bg-slate-700/50">
+      <div>
+        <h3 class="text-lg font-display font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          Food Budget Plan
+          <span
+            class="px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold tracking-wider uppercase">Weekly</span>
+        </h3>
+        <!-- Start Day Selector -->
+        <div class="mt-2 flex items-center gap-2">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Start Day:</label>
+          <select [(ngModel)]="foodStatsStartDay" (change)="onFoodStatsStartDayChange()"
+            class="bg-slate-50 dark:bg-slate-700 border-none rounded-lg px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary-500">
+            <option [ngValue]="null">Default (1st)</option>
+            <option *ngFor="let day of availableStartDays" [ngValue]="day">Day {{ day }}</option>
+          </select>
+
+          <!-- Month Offset Toggle (Only if Start Day is selected) -->
+          <div *ngIf="foodStatsStartDay" class="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-0.5 ml-2">
+            <button (click)="foodStatsStartMonthOffset = -1; onFoodStatsStartDayChange()"
+              [class.bg-white]="foodStatsStartMonthOffset === -1" [class.shadow-sm]="foodStatsStartMonthOffset === -1"
+              [class.text-slate-900]="foodStatsStartMonthOffset === -1"
+              [class.dark:bg-slate-600]="foodStatsStartMonthOffset === -1"
+              [class.dark:text-white]="foodStatsStartMonthOffset === -1"
+              class="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 rounded-md transition-all">
+              Prev Month
+            </button>
+            <button (click)="foodStatsStartMonthOffset = 0; onFoodStatsStartDayChange()"
+              [class.bg-white]="foodStatsStartMonthOffset === 0" [class.shadow-sm]="foodStatsStartMonthOffset === 0"
+              [class.text-slate-900]="foodStatsStartMonthOffset === 0"
+              [class.dark:bg-slate-600]="foodStatsStartMonthOffset === 0"
+              [class.dark:text-white]="foodStatsStartMonthOffset === 0"
+              class="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 rounded-md transition-all">
+              Current
+            </button>
+          </div>
+        </div>
+      </div>
+      <button (click)="closeFoodStats()"
+        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6 overflow-y-auto max-h-[80vh]">
+      <div
+        class="flex items-center justify-between mb-6 bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800"
+        *ngIf="foodStats">
+        <div>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-1">Monthly
+            Budget</p>
+          <p class="text-2xl font-display font-bold text-emerald-700 dark:text-emerald-300">{{ foodStats.totalBudget |
+            currency:'THB':'symbol-narrow' }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-1">Daily Avg
+          </p>
+          <p class="text-xl font-display font-bold text-emerald-700 dark:text-emerald-300">{{ foodStats.dailyBudget |
+            currency:'THB':'symbol-narrow' }}</p>
+        </div>
+      </div>
+
+      <div class="relative space-y-0" *ngIf="foodStats">
+        <!-- Vertical Line Track -->
+        <div
+          class="absolute left-[7px] top-3 bottom-8 w-0.5 bg-slate-200 dark:bg-slate-700 overflow-hidden rounded-full">
+          <!-- Progress Bar -->
+          <div class="w-full bg-primary-500 transition-all duration-1000 ease-out"
+            [style.height.%]="foodStats.progressPercentage"></div>
+        </div>
+
+        <div *ngFor="let week of foodStats.weeks; let i = index" class="relative pl-8 pb-8 last:pb-0 group"
+          [class.opacity-40]="week.isPast" [class.grayscale]="week.isPast">
+          <!-- Dot -->
+          <div
+            class="absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-primary-500 z-10 group-hover:scale-110 transition-transform shadow-sm"
+            [class.bg-white]="!week.isCurrent" [class.dark:bg-slate-800]="!week.isCurrent"
+            [class.bg-primary-500]="week.isCurrent">
+          </div>
+
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-sm font-bold" [class.text-slate-800]="!week.isCurrent"
+                [class.dark:text-slate-200]="!week.isCurrent" [class.text-primary-600]="week.isCurrent"
+                [class.dark:text-primary-400]="week.isCurrent">
+                Week {{ i + 1 }}
+                <span *ngIf="week.isCurrent"
+                  class="ml-2 text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider">Current</span>
+              </p>
+              <p class="text-xs text-slate-500 font-medium">{{ week.range }} <span
+                  class="text-slate-300 dark:text-slate-600 mx-1">•</span> {{ week.days }} days</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold text-primary-600 dark:text-primary-400">{{ week.budget |
+                currency:'THB':'symbol-narrow' }}</p>
+            </div>
+          </div>
+
+          <div
+            class="bg-slate-50 dark:bg-slate-700/30 px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-700/50 flex justify-between items-center">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Remaining Balance</span>
+            <span class="font-mono text-sm font-bold" [class.text-emerald-600]="week.balanceEnd >= 0"
+              [class.text-rose-500]="week.balanceEnd < 0">
+              {{ week.balanceEnd | currency:'THB':'symbol-narrow' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-100 dark:border-slate-700 text-center">
+      <p class="text-xs text-slate-400 dark:text-slate-500">Based on weighted daily average</p>
     </div>
   </div>
 </div>
