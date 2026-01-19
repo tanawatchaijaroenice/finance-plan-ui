@@ -40,7 +40,8 @@ export interface Category {
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = 'https://finance-plan-api.onrender.com/api';
+  // private apiUrl = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) { }
 
