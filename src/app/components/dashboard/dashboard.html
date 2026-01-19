@@ -1,14 +1,15 @@
 <div class="max-w-7xl mx-auto space-y-8">
   <!-- Sticky Header & Stats Wrapper -->
   <div
-    class="sticky top-16 z-40 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md py-4 -mx-4 px-4 shadow-sm transition-all rounded-b-2xl flex flex-col gap-6">
+    class="sticky top-16 z-40 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md py-4 -mx-4 px-4 shadow-sm transition-all rounded-b-2xl flex flex-col gap-4 md:gap-6">
     <!-- Header -->
-    <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-display font-bold text-slate-800 dark:text-slate-100 flex items-center tracking-tight">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
+      <h1
+        class="text-2xl md:text-3xl font-display font-bold text-slate-800 dark:text-slate-100 flex items-center tracking-tight w-full md:w-auto justify-between md:justify-start">
         Dashboard
         <div class="relative ml-4 group">
           <select *ngIf="allMonths.length > 0" [(ngModel)]="selectedMonthId" (change)="onMonthChange()"
-            class="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-lg font-medium text-primary-600 dark:text-primary-400 py-1 pl-3 pr-8 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 transition-all">
+            class="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-base md:text-lg font-medium text-primary-600 dark:text-primary-400 py-1 pl-3 pr-8 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 transition-all">
             <option *ngFor="let m of allMonths" [value]="m.id">{{ m.name }}</option>
           </select>
           <div
@@ -19,9 +20,9 @@
           </div>
         </div>
       </h1>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 w-full md:w-auto">
         <button (click)="openCreateModal()"
-          class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-primary-600/20 active:scale-95">
+          class="flex-1 md:flex-none justify-center items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-primary-600/20 active:scale-95">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
@@ -42,69 +43,72 @@
 
     @if (!loading && currentMonth) {
     <!-- Stats Cards (Inside Sticky) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div
+      class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-6 md:pb-0 md:mx-0 md:px-0 no-scrollbar">
       <!-- Income -->
       <div
-        class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300">
-        <div class="flex justify-between items-start mb-4">
+        class="min-w-[85%] snap-center bg-white dark:bg-slate-800 p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300">
+        <div class="flex justify-between items-start mb-2 md:mb-4">
           <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-emerald-600 dark:text-emerald-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
               </path>
             </svg>
           </div>
           <span
-            class="text-xs font-semibold px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full">Verified</span>
+            class="text-[10px] md:text-xs font-semibold px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full">Verified</span>
         </div>
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Income</p>
-        <p class="text-3xl font-display font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{{
+        <p class="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Income</p>
+        <p class="text-2xl md:text-3xl font-display font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{{
           currentMonth.totalIncome |
           currency:'THB':'symbol-narrow' }}</p>
       </div>
 
       <!-- Expenses -->
       <div
-        class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300">
-        <div class="flex justify-between items-start mb-4">
+        class="min-w-[85%] snap-center bg-white dark:bg-slate-800 p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300">
+        <div class="flex justify-between items-start mb-2 md:mb-4">
           <div class="p-2 bg-rose-50 dark:bg-rose-900/20 rounded-lg text-rose-500 dark:text-rose-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6">
               </path>
             </svg>
           </div>
           <span
-            class="text-xs font-semibold px-2 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-full">
+            class="text-[10px] md:text-xs font-semibold px-2 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-full">
             {{ (totalExpenses / (currentMonth.totalIncome || 1)) | percent:'1.0-0' }} used
           </span>
         </div>
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Expenses</p>
-        <p class="text-3xl font-display font-bold text-rose-500 dark:text-rose-400 tracking-tight">{{ totalExpenses |
+        <p class="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Expenses</p>
+        <p class="text-2xl md:text-3xl font-display font-bold text-rose-500 dark:text-rose-400 tracking-tight">{{
+          totalExpenses |
           currency:'THB':'symbol-narrow' }}</p>
       </div>
 
       <!-- Remaining -->
       <div
-        class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300 relative overflow-hidden">
+        class="min-w-[85%] snap-center bg-white dark:bg-slate-800 p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow duration-300 relative overflow-hidden">
         <div
           class="absolute top-0 right-0 w-32 h-32 bg-primary-50 dark:bg-primary-900/20 rounded-full -mr-16 -mt-16 opacity-50">
         </div>
-        <div class="flex justify-between items-start mb-4 relative z-10">
+        <div class="flex justify-between items-start mb-2 md:mb-4 relative z-10">
           <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5002 5002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3">
               </path>
             </svg>
           </div>
           <span
-            class="text-xs font-semibold px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full">
+            class="text-[10px] md:text-xs font-semibold px-2 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full">
             {{ ((currentMonth.totalIncome || 0) - totalExpenses) / (currentMonth.totalIncome || 1) | percent:'1.0-0' }}
             left
           </span>
         </div>
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 relative z-10">Available Balance</p>
-        <p class="text-3xl font-display font-bold relative z-10" [class.text-slate-800]="remaining >= 0"
+        <p class="text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 relative z-10">Available
+          Balance</p>
+        <p class="text-2xl md:text-3xl font-display font-bold relative z-10" [class.text-slate-800]="remaining >= 0"
           [class.dark:text-slate-100]="remaining >= 0" [class.text-rose-500]="remaining < 0">
           {{ remaining | currency:'THB':'symbol-narrow' }}
         </p>
@@ -164,8 +168,8 @@
       </div>
 
       <!-- Expense List -->
-      <div class="p-0 flex-grow">
-        <table class="w-full text-sm">
+      <div class="p-0 flex-grow overflow-x-auto">
+        <table class="w-full text-sm min-w-[500px] md:min-w-full">
           <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
             <tr *ngFor="let ex of group.expenses"
               class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">

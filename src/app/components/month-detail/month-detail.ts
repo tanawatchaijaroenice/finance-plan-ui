@@ -74,11 +74,7 @@ export class MonthDetailComponent implements OnInit {
       .filter(g => g.category !== null || g.expenses.length > 0) // Only show categories or non-empty uncategorized
       .map(g => {
         g.expenses.sort((a, b) => {
-          const nameA = a.account?.name || '';
-          const nameB = b.account?.name || '';
-          if (nameA < nameB) return -1;
-          if (nameA > nameB) return 1;
-          return 0;
+          return b.id - a.id;
         });
         return {
           ...g,

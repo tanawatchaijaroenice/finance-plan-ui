@@ -14,6 +14,7 @@ export class App {
   router = inject(Router);
   protected readonly title = signal('frontend');
   darkMode = signal<boolean>(false);
+  isMobileMenuOpen = signal<boolean>(false);
 
   constructor() {
     // Check system preference or localStorage
@@ -25,6 +26,14 @@ export class App {
 
   toggleTheme() {
     this.setTheme(!this.darkMode());
+  }
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen.update(v => !v);
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen.set(false);
   }
 
   private setTheme(isDark: boolean) {
