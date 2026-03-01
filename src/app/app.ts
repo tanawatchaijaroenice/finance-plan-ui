@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common'; // Import CommonModule
 import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
-
+import { LoadingService } from './services/loading.service';
 @Component({
   selector: 'app-root',
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive], // Add CommonModule to imports
@@ -11,6 +11,7 @@ import { AuthService } from './services/auth.service';
 })
 export class App {
   authService = inject(AuthService);
+  loadingService = inject(LoadingService);
   router = inject(Router);
   protected readonly title = signal('frontend');
   darkMode = signal<boolean>(false);
