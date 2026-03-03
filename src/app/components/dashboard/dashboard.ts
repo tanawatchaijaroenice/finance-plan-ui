@@ -37,6 +37,7 @@ export class DashboardComponent implements OnInit {
 
   allMonths: Month[] = [];
   selectedMonthId: number | null = null;
+  private readonly SELECTED_MONTH_KEY = 'finance_plan_selected_month';
 
   constructor(private api: ApiService) { }
 
@@ -48,15 +49,21 @@ export class DashboardComponent implements OnInit {
     this.api.getMonths().subscribe(months => {
       this.allMonths = months;
       if (months.length > 0) {
-        // Try to find current month by name (e.g. "December 2025")
-        const now = new Date();
-        const currentMonthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-        const found = months.find(m => m.name === currentMonthName);
+        const savedMonthId = localStorage.getItem(this.SELECTED_MONTH_KEY);
 
-        if (found) {
-          this.selectedMonthId = found.id;
+        if (savedMonthId && months.some(m => m.id === Number(savedMonthId))) {
+          this.selectedMonthId = Number(savedMonthId);
         } else {
-          this.selectedMonthId = months[0].id; // Fallback to latest
+          // Try to find current month by name (e.g. "December 2025")
+          const now = new Date();
+          const currentMonthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+          const found = months.find(m => m.name === currentMonthName);
+
+          if (found) {
+            this.selectedMonthId = found.id;
+          } else {
+            this.selectedMonthId = months[0].id; // Fallback to latest
+          }
         }
 
         if (this.selectedMonthId) {
@@ -70,6 +77,7 @@ export class DashboardComponent implements OnInit {
 
   onMonthChange() {
     if (this.selectedMonthId) {
+      localStorage.setItem(this.SELECTED_MONTH_KEY, this.selectedMonthId.toString());
       this.loadMonthDetails(Number(this.selectedMonthId));
     }
   }

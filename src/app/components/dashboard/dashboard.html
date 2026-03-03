@@ -1,7 +1,7 @@
 <div class="max-w-7xl mx-auto space-y-8">
   <!-- Sticky Header & Stats Wrapper -->
   <div
-    class="sticky top-16 z-40 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md py-4 -mx-4 px-4 shadow-sm transition-all rounded-b-2xl flex flex-col gap-4 md:gap-6">
+    class="md:sticky md:top-16 relative z-40 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md py-4 -mx-4 px-4 shadow-sm transition-all rounded-b-2xl flex flex-col gap-4 md:gap-6">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
       <h1
@@ -168,13 +168,13 @@
       </div>
 
       <!-- Expense List -->
-      <div class="p-0 flex-grow overflow-x-auto">
-        <table class="w-full text-sm min-w-[500px] md:min-w-full">
+      <div class="p-0 flex-grow">
+        <table class="w-full text-sm">
           <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
             <tr *ngFor="let ex of group.expenses"
-              class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+              class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group flex flex-col md:table-row">
               <td
-                class="px-5 py-3 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
+                class="px-5 py-3 pb-1 md:pb-3 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 block md:table-cell">
                 <div class="flex items-center gap-2">
                   <!-- Checkbox for Paid Status (Styled like Manage Page) -->
                   <label class="flex items-center gap-2 cursor-pointer">
@@ -208,7 +208,8 @@
                   </span>
                 </div>
               </td>
-              <td class="px-5 py-3 text-right font-medium text-slate-700 dark:text-slate-300">
+              <td
+                class="px-5 py-3 pt-0 md:pt-3 text-left pl-12 md:pl-5 md:text-right font-medium text-slate-700 dark:text-slate-300 block md:table-cell">
                 <span *ngIf="group.category?.type === 'INCOME'" class="text-blue-600 dark:text-blue-400 font-bold">
                   <span class="text-xs mr-0.5 text-slate-400 font-normal">Charge</span>
                   {{ ex.amount | currency:'THB':'symbol-narrow' }}
