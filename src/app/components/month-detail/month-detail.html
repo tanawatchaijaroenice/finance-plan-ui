@@ -114,10 +114,10 @@
             class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <!-- Group Header -->
             <div class="px-6 py-4 flex justify-between items-center border-b dark:border-slate-700"
-                [ngClass]="getCategoryColor(group.category?.id).bg + ' ' + getCategoryColor(group.category?.id).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
+                [ngClass]="getGroupColor(group).bg + ' ' + getGroupColor(group).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center shadow-sm"
-                        [ngClass]="getCategoryColor(group.category?.id).text">
+                        [ngClass]="getGroupColor(group).text">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
@@ -126,7 +126,7 @@
                     </div>
                     <div>
                         <h3 class="font-display font-bold text-lg"
-                            [ngClass]="getCategoryColor(group.category?.id).text">
+                            [ngClass]="getGroupColor(group).text">
                             {{ group.category?.name || 'Uncategorized' }}
                         </h3>
                         <p
@@ -145,14 +145,14 @@
                         </svg>
                     </button>
                     <div class="text-right">
-                        <p class="text-sm font-bold" [ngClass]="getCategoryColor(group.category?.id).text">
+                        <p class="text-sm font-bold" [ngClass]="getGroupColor(group).text">
                             {{ group.total | currency:'THB':'symbol-narrow' }}
                         </p>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
                     </div>
-                    <button (click)="startAddDetail(group.category)"
+                    <button (click)="startAddDetail(group)"
                         class="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm hover:scale-105 transition-transform"
-                        [ngClass]="getCategoryColor(group.category?.id).text">
+                        [ngClass]="getGroupColor(group).text">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                             </path>
@@ -253,6 +253,8 @@
                                                 class="w-fit text-[10px] font-bold px-1.5 py-0.5 rounded border"
                                                 [ngClass]="getAccountStyle(expense.account)">
                                                 {{ expense.account.name }}
+                                                <span *ngIf="expense.account.type === 'CREDIT_CARD' && group.category?.name !== expense.account.name"
+                                                    class="ml-1 text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-500">CREDIT</span>
                                                 <span
                                                     *ngIf="expense.account.type === 'CREDIT_CARD' && expense.account.dueDate"
                                                     class="ml-1 text-[10px] text-slate-400 dark:text-slate-500">

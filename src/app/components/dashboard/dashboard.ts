@@ -104,15 +104,32 @@ export class DashboardComponent implements OnInit {
 
     this.remaining = Number(this.currentMonth.totalIncome) - this.totalExpenses;
 
-    const map = new Map<number | string, { category: Category | null, total: number, expenses: Expense[] }>();
+    const map = new Map<number | string, { category: Category | null, accountId?: number, total: number, expenses: Expense[] }>();
 
     this.currentMonth.expenses.forEach(ex => {
-      const key = ex.categoryId || 'uncategorized';
+      let key: number | string = ex.categoryId || 'uncategorized';
+      let cat: any = ex.category || null;
+      let accountIdForGroup: number | undefined = undefined;
+
+      // Group by distinct Credit Card Account instead of generic Category
+      if (ex.account?.type === 'CREDIT_CARD') {
+        key = `cc_${ex.accountId}`;
+        accountIdForGroup = ex.accountId || undefined;
+        // Create pseudo-category to display the card name but keep color ID
+        cat = {
+          id: ex.categoryId, 
+          name: ex.account.name,
+          type: ex.category?.type,
+          seqNo: (ex.category?.seqNo || 90) + (ex.accountId || 0) * 0.01 
+        };
+      }
+
       let group = map.get(key);
 
       if (!group) {
         group = {
-          category: ex.category || null,
+          category: cat,
+          accountId: accountIdForGroup,
           total: 0,
           expenses: []
         };
@@ -120,28 +137,15 @@ export class DashboardComponent implements OnInit {
       }
 
       group.expenses.push(ex);
-      // Only add to group total if it's an EXPENSE (or maybe we DO want to show total for Income categories?
-      // Usually Expense breakdown should only show expenses. Let's separate or exclude Income categories from the main list?)
-      // User said "Income as category". If I show them in the list, they should look like income.
-      if (ex.category?.type !== 'INCOME') {
-        group.total += Number(ex.amount);
-      } else {
-        // For INCOME categories, we might want to track total but maybe visually distinct?
-        // Let's track it for now, but the loop below sorts by total.
-        group.total += Number(ex.amount);
-      }
+      
+      // All expenses add to their group total visually
+      group.total += Number(ex.amount);
     });
 
     this.groupedExpenses = Array.from(map.values())
       .map(g => {
-        // Sort expenses by Account Name (to keep same card together), then by ID
-        g.expenses.sort((a, b) => {
-          const nameA = a.account?.name || '';
-          const nameB = b.account?.name || '';
-          if (nameA < nameB) return -1;
-          if (nameA > nameB) return 1;
-          return 0;
-        });
+        // Sort expenses by ID descending (newest first)
+        g.expenses.sort((a, b) => b.id - a.id);
 
         return {
           ...g,
@@ -272,6 +276,35 @@ export class DashboardComponent implements OnInit {
     ];
 
     return colors[id % colors.length];
+  }
+
+  getGroupColor(group: any): { bg: string, text: string, border: string } {
+    const name = group.category?.name?.toUpperCase() || '';
+
+    if (group.accountId) {
+      if (name.includes('KTC')) {
+         return { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' };
+      }
+      if (name.includes('XPRESS CASH') || name.includes('KBANK')) {
+         return { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' };
+      }
+      if (name.includes('KRUNGSRI')) {
+         return { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200' };
+      }
+      if (name.includes('FIRST CHOICE')) {
+         return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' };
+      }
+      return { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' };
+    } else {
+      if (name.includes('RENT')) {
+         return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' };
+      }
+      if (name.includes('MONTHLY')) {
+         return { bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', border: 'border-fuchsia-200' };
+      }
+    }
+    
+    return this.getCategoryColor(group.category?.id);
   }
 
   getAccountStyle(account: Account | undefined | null): string {

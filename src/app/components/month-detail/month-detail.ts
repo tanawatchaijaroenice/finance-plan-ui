@@ -52,26 +52,59 @@ export class MonthDetailComponent implements OnInit {
   processGroups() {
     if (!this.month || !this.month.expenses) return;
 
-    const map = new Map<number | string, { category: Category | null, expenses: Expense[], total: number }>();
+    const map = new Map<number | string, { category: Category | null, accountId?: number, expenses: Expense[], total: number }>();
 
-    // Initialize map with all available categories to ensure they show up even if empty (optional, but good for "adding detail")
+    // Initialize map with all available categories to ensure they show up even if empty
     this.categories.forEach(cat => {
-      map.set(cat.id, { category: cat, expenses: [], total: 0 });
+      // If it's a Credit Card category, generate specific account blocks instead
+      if (cat.name.toLowerCase().includes('credit card')) {
+        this.accounts.filter(a => a.type === 'CREDIT_CARD').forEach(acc => {
+          const key = `cc_${acc.id}`;
+          const fakeCat = {
+            id: cat.id,
+            name: acc.name,
+            type: cat.type,
+            seqNo: (cat.seqNo || 90) + (acc.id || 0) * 0.01
+          } as any;
+          map.set(key, { category: fakeCat, accountId: acc.id, expenses: [], total: 0 });
+        });
+      } else {
+        map.set(cat.id, { category: cat, expenses: [], total: 0 });
+      }
     });
     // Also handle uncategorized
     map.set('uncategorized', { category: null, expenses: [], total: 0 });
 
     this.month.expenses.forEach(ex => {
-      const key = ex.categoryId || 'uncategorized';
-      const group = map.get(key);
-      if (group) {
-        group.expenses.push(ex);
-        group.total += Number(ex.amount);
+      let key: number | string = ex.categoryId || 'uncategorized';
+      let cat: any = ex.category || null;
+      let accountIdForGroup: number | undefined = undefined;
+
+      if (ex.account?.type === 'CREDIT_CARD') {
+        key = `cc_${ex.accountId}`;
+        accountIdForGroup = ex.accountId || undefined;
+        cat = {
+            id: ex.categoryId, // For adding new expenses, keep the original category ID
+            name: ex.account.name,
+            type: ex.category?.type,
+            seqNo: (ex.category?.seqNo || 90) + (ex.accountId || 0) * 0.01 
+        };
       }
+
+      let group = map.get(key);
+      if (!group) {
+        group = { category: cat, accountId: accountIdForGroup, expenses: [], total: 0 };
+        map.set(key, group);
+      }
+      group.expenses.push(ex);
+      group.total += Number(ex.amount);
     });
 
     const result = Array.from(map.values())
-      .filter(g => g.category !== null || g.expenses.length > 0) // Only show categories or non-empty uncategorized
+      .filter(g => {
+        // Only show categories or non-empty uncategorized
+        return g.category !== null || g.expenses.length > 0;
+      })
       .map(g => {
         g.expenses.sort((a, b) => {
           return b.id - a.id;
@@ -217,13 +250,14 @@ export class MonthDetailComponent implements OnInit {
   addingCategoryId: number | string | null = null;
   newDetail: Partial<Expense> = {};
 
-  startAddDetail(category: Category | null) {
+  startAddDetail(group: any) {
+    const category = group?.category || null;
     this.addingCategoryId = category?.id || 'uncategorized';
     this.newDetail = {
       amount: undefined,
       categoryId: category?.id,
       note: '',
-      accountId: null, // Default to first account
+      accountId: group?.accountId || null, // Pre-select account if provided by group
       status: 'UNPAID'
     };
   }
@@ -313,6 +347,35 @@ export class MonthDetailComponent implements OnInit {
     ];
 
     return colors[id % colors.length];
+  }
+
+  getGroupColor(group: any): { bg: string, text: string, border: string } {
+    const name = group.category?.name?.toUpperCase() || '';
+
+    if (group.accountId) {
+      if (name.includes('KTC')) {
+         return { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' };
+      }
+      if (name.includes('XPRESS CASH') || name.includes('KBANK')) {
+         return { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' };
+      }
+      if (name.includes('KRUNGSRI')) {
+         return { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200' };
+      }
+      if (name.includes('FIRST CHOICE')) {
+         return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' };
+      }
+      return { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' };
+    } else {
+      if (name.includes('RENT')) {
+         return { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' };
+      }
+      if (name.includes('MONTHLY')) {
+         return { bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', border: 'border-fuchsia-200' };
+      }
+    }
+    
+    return this.getCategoryColor(group.category?.id);
   }
 
   getAccountStyle(account: Account | undefined | null): string {

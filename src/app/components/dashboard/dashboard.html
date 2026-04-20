@@ -143,7 +143,7 @@
       class="rounded-xl shadow-sm border overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
       <!-- Header -->
       <div class="px-5 py-3 border-b dark:border-slate-700 flex justify-between items-center"
-        [ngClass]="getCategoryColor(group.category?.id).bg + ' ' + getCategoryColor(group.category?.id).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
+        [ngClass]="getGroupColor(group).bg + ' ' + getGroupColor(group).border + ' dark:bg-opacity-10 dark:border-opacity-10'">
         <div class="flex items-center gap-2 overflow-hidden">
 
           <button *ngIf="group.category?.name?.toLowerCase() === 'food'" (click)="openFoodStats(group.category)"
@@ -157,12 +157,12 @@
           </button>
 
           <h3 class="font-bold truncate" [title]="group.category?.name"
-            [ngClass]="getCategoryColor(group.category?.id).text">
+            [ngClass]="getGroupColor(group).text">
             {{ group.category?.name || 'Uncategorized' }}
           </h3>
         </div>
         <span class="font-bold bg-white dark:bg-slate-700 px-2 py-1 rounded text-sm border shadow-sm flex-shrink-0"
-          [ngClass]="getCategoryColor(group.category?.id).text + ' ' + getCategoryColor(group.category?.id).border + ' dark:border-slate-600'">
+          [ngClass]="getGroupColor(group).text + ' ' + getGroupColor(group).border + ' dark:border-slate-600'">
           {{ group.total | currency:'THB':'symbol-narrow' }}
         </span>
       </div>
@@ -200,7 +200,7 @@
                     class="rounded text-[10px] font-bold px-1.5 py-0.5 flex items-center whitespace-nowrap"
                     [ngClass]="getAccountStyle(ex.account)">
                     {{ ex.account.name }}
-                    <span *ngIf="ex.account.type === 'CREDIT_CARD'"
+                    <span *ngIf="ex.account.type === 'CREDIT_CARD' && group.category?.name !== ex.account.name"
                       class="ml-1 text-[9px] uppercase tracking-wider text-slate-400">CREDIT</span>
                     <span *ngIf="ex.account.type === 'CREDIT_CARD' && ex.account.dueDate" class="ml-1">
                       (Due: {{ ex.account.dueDate }})
